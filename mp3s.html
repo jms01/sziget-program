@@ -1,0 +1,43 @@
+<html>
+    <head>
+        <title>Sziget 2018 program</title>
+    </head>
+    <body>
+        <div id="app">
+            <div v-for="day in days">
+                <div v-for="place in day.places">
+                    <div v-for="program in place.programs" v-if="program.performer.previewmp3">
+                        {{program.performer.previewmp3}}<br />
+                        &nbsp;dir={{day.day}} {{day.weekday}}/{{_.padStart(place.rank,2,'0')}} {{_.deburr(place.title)}}<br />
+                        &nbsp;out=<format-time v-bind:key="program.id" v-bind:date="program.startDate"></format-time> {{_.deburr(program.performer.name)}}.mp3
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="sziget-blob.js"></script>
+        <script src="lodash.min.js"></script>
+        <script src="sziget-days.js"></script>
+        <script src="vue.min.js"></script>
+        <script>
+            console.log(_.cloneDeep(programData));
+            console.log(_.cloneDeep(days));
+
+            var weekdays = [
+                'Sunday', 'Monday', 'Tuesday',
+                'Wednesday', 'Thursday', 'Friday',
+                'Saturday'
+            ];
+
+            Vue.component('format-time', {
+                props: ['date'],
+                template: '<span>{{_.padStart(date.getHours(),2,"0")}}{{_.padStart(date.getMinutes(),2,"0")}}</span>',
+            });
+            var app = new Vue({
+                el: '#app',
+                data: {
+                    days: days,
+                },
+            });
+        </script>
+    </body>
+</html>
