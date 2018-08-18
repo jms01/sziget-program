@@ -1,0 +1,79 @@
+<html>
+    <head>
+        <title>Sziget 2018 program</title>
+    </head>
+    <body>
+        <div id="app">
+            <ul>
+                <li v-for="day in days">
+                    {{_.padStart(day.day,2,'0')}} {{day.weekday}}
+                    <ul>
+                        <li v-for="place in day.places">
+                            {{place.title}}
+                            <ul>
+                                <li v-for="program in place.programs">
+                                    <format-time v-bind:key="program.id" v-bind:date="program.startDate"></format-time>
+                                    -
+                                    <format-time v-bind:key="program.id" v-bind:date="program.endDate"></format-time>
+
+                                    <audio
+                                        controls
+                                        preload="none"
+                                        v-bind:src="program.performer.previewmp3"
+                                        style="width:42px">
+                                    </audio>
+
+                                    <button v-on:click="toggleMark(program)">
+                                        <template v-if="program.marked">Unmark</template>
+                                        <template v-else>Mark</template>
+                                    </button>
+
+                                    {{program.performer.name}}
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <script src="sziget-blob.js"></script>
+        <script src="lodash.min.js"></script>
+        <script src="sziget-days.js"></script>
+        <script src="vue.min.js"></script>
+        <script>
+            console.log(_.cloneDeep(programData));
+            console.log(_.cloneDeep(days));
+
+            var weekdays = [
+                'Sunday', 'Monday', 'Tuesday',
+                'Wednesday', 'Thursday', 'Friday',
+                'Saturday'
+            ];
+
+            Vue.component('format-time', {
+                props: ['date'],
+                template: '<span>{{_.padStart(date.getHours(),2,"0")}}{{_.padStart(date.getMinutes(),2,"0")}}</span>',
+            });
+            var app = new Vue({
+                el: '#app',
+                data: {
+                    days: days,
+                },
+                methods: {
+                    toggleMark: function(program){
+                        var programMarkKey = 'mark-program-' + program.id;
+                        if (program.marked) {
+                            // remove mark
+                            program.marked = false;
+                            localStorage.removeItem(programMarkKey);
+                        } else {
+                            // add mark
+                            program.marked = true;
+                            localStorage.setItem(programMarkKey, true);
+                        }
+                    }
+                },
+            });
+        </script>
+    </body>
+</html>
