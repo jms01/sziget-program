@@ -1,0 +1,109 @@
+<html>
+    <head>
+        <title>Sziget 2018 program</title>
+        <style>
+            * {
+                font: 8pt Verdana;
+                margin:0;
+                padding:0;
+            }
+            h1 {
+                font-size: 12pt;
+                font-weight: bold;
+                text-align: center;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="app">
+            <div v-for="day in days" v-if="day.day == selectedDay">
+                <h1>{{_.padStart(day.day,2,'0')}} {{day.weekday}}</h1>
+                <div v-for="place in day.places">
+                    {{place.title}}
+                    <ul style="display:block; height: 13%; background: #efefef">
+                        <li
+                            v-for="program in place.programs"
+                            v-bind:style="{ display: 'inline-block', background: '#ddd', height: 'inherit', overflow: 'hidden', position: 'absolute', left: program.percentageStart + '%', width: program.percentageLength + '%' }"
+                        >
+                            <div style="white-space:nowrap">
+                                <format-time v-bind:key="program.id" v-bind:date="program.startDate"></format-time>
+                                -
+                                <format-time v-bind:key="program.id" v-bind:date="program.endDate"></format-time>
+                            </div>
+
+                            <div style="word-break: break-word">
+                                {{program.performer.name}}
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <script src="sziget-blob.js"></script>
+        <script src="lodash.min.js"></script>
+        <script src="sziget-days.js"></script>
+        <script src="vue.min.js"></script>
+        <script>
+            console.log(_.cloneDeep(programData));
+            console.log(_.cloneDeep(days));
+
+            var weekdays = [
+                'Sunday', 'Monday', 'Tuesday',
+                'Wednesday', 'Thursday', 'Friday',
+                'Saturday'
+            ];
+
+            function dateToPercentage(date) {
+                var percentage = 0;
+                var PERCENT_PER_HOUR = 4;
+
+                percentage += (date.getHours() - 6) * PERCENT_PER_HOUR;
+                if (date.getHours() < 6) {
+                    percentage += 24 * PERCENT_PER_HOUR;
+                }
+                percentage += (date.getMinutes() / 60) * PERCENT_PER_HOUR;
+
+                return percentage;
+            }
+
+            // enhance all performances specific to this application
+            _.each(days, function(day){
+                _.each(day.places, function(place){
+                    _.each(place.programs, function(program){
+                        // translate start and end time and duration to a percentage
+                        // 0% is 6 AM, 100% is 6 AM the next day
+                        program.percentageStart = dateToPercentage(program.startDate);
+                        program.percentageEnd = dateToPercentage(program.endDate);
+
+                        program.percentageLength = program.percentageEnd - program.percentageStart;
+                    });
+                });
+            });
+
+            // only keep marked performances and stages with performances
+            _.each(days, function(day){
+                day.places = _.filter(day.places, function(place){
+                    place.programs = _.filter(place.programs, function(program){
+                        return program.marked;
+                    });
+
+                    return place.programs.length > 0;
+                });
+            });
+
+            console.log(_.cloneDeep(days));
+
+            Vue.component('format-time', {
+                props: ['date'],
+                template: '<span>{{_.padStart(date.getHours(),2,"0")}}:{{_.padStart(date.getMinutes(),2,"0")}}</span>',
+            });
+            var app = new Vue({
+                el: '#app',
+                data: {
+                    selectedDay: 8,
+                    days: days,
+                },
+            });
+        </script>
+    </body>
+</html>
